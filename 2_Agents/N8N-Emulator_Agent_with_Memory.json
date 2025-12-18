@@ -1,0 +1,263 @@
+{
+  "name": "Emulator Agent with Memory",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "qwen/qwen2.5-vl-7b",
+          "mode": "list",
+          "cachedResultName": "qwen/qwen2.5-vl-7b"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        352,
+        3648
+      ],
+      "id": "1ea52f2d-a1ca-43ca-a347-adffc8bcb703",
+      "name": "OpenAI Chat Model",
+      "notesInFlow": true,
+      "credentials": {
+        "openAiApi": {
+          "id": "i1SUhTKBAZfNz0yl",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        128,
+        3424
+      ],
+      "id": "1cb4ca4d-b72d-4965-afd5-9e489415efd6",
+      "name": "When chat message received",
+      "webhookId": "a6e4c755-c5ad-4367-be3f-0d4af3585fce"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are an advanced AI assistant with access to a comprehensive toolkit of services and APIs. \n\nFirst check if any android devices are running, if not then check what preconfigured devices can be started",
+          "returnIntermediateSteps": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        664,
+        3424
+      ],
+      "id": "87891253-f00c-4ce5-97b6-0bf81e25dc99",
+      "name": "AI Agent1",
+      "alwaysOutputData": true,
+      "retryOnFail": false,
+      "notesInFlow": true
+    },
+    {
+      "parameters": {},
+      "id": "f2e687c4-0c66-405f-8fd2-f2b2a2ea0193",
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.2,
+      "position": [
+        480,
+        3648
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:3000/adb/get-memory",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({memory_key: 'customer_' + $json.customer_number + '_emulator'}) }}"
+      },
+      "id": "fe3659d6-d556-43f2-99a3-f1135413a9d7",
+      "name": "Get Emulator Preference",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        608,
+        3648
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:3000/adb/save-memory",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({memory_key: 'customer_' + $json.customer_number + '_emulator', memory_value: $json.emulator_identifier}) }}"
+      },
+      "id": "200db687-8dc9-4532-b3d9-7fccfa97a46e",
+      "name": "Save Emulator Preference",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        736,
+        3648
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Check configured android devices",
+        "url": "http://host.docker.internal:3000/adb/avds",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        864,
+        3648
+      ],
+      "id": "5ffb5fd4-91e5-4c4d-bc6f-4610f67ee65d",
+      "name": "List AVDs"
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:3000/adb/devices"
+      },
+      "id": "974bdf8a-6a10-41ab-bc1d-d90cbbb078ec",
+      "name": "Check Devices",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        992,
+        3648
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:3000/adb/start-emulator",
+        "sendBody": true,
+        "specifyBody": "model"
+      },
+      "id": "40ef51f3-bdf4-42a5-86ae-90a23fc76925",
+      "name": "Start Emulator",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        3648
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        []
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Emulator Preference": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Emulator Preference": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List AVDs": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Devices": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start Emulator": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0474eaa3-622f-47b1-bc09-fc75cc80bad1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d6717b86ead54eaf07b0066b6fc65deb5cfe8efa27de0d84d24525adbd135ebc"
+  },
+  "id": "P3OBfR7r6bwrC8hN",
+  "tags": []
+}

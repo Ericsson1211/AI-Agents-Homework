@@ -1,8 +1,3 @@
-"""
-Simple Android Automation ReAct Agent
-Just 2 tools: ADB commands + Package checker
-"""
-
 import json
 import subprocess
 from ollama import chat, ChatResponse

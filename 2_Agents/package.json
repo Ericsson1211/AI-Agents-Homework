@@ -1,0 +1,16 @@
+{
+  "name": "adb-bridge-api",
+  "version": "1.0.0",
+  "description": "REST API bridge for ADB commands - allows n8n in Docker to access ADB on Mac",
+  "main": "adb-bridge-api.js",
+  "scripts": {
+    "start": "node adb-bridge-api.js",
+    "test": "chmod +x test-adb-api.sh && ./test-adb-api.sh"
+  },
+  "keywords": ["adb", "android", "n8n", "api", "bridge"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
